@@ -3,11 +3,11 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.model.UserMealWithExcess;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -29,11 +29,47 @@ public class UserMealsUtil {
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // TODO return filtered list with excess. Implement by cycles
-        return null;
+       List<UserMealWithExcess> tempList = toUserMealWithExcess(meals, caloriesPerDay);
+       List<UserMealWithExcess> resultList = new ArrayList<>();
+       for (UserMeal meal : meals) {
+           boolean inCorrectTimeRange = TimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime);
+           if (inCorrectTimeRange) {
+                resultList.add(tempList.get(meals.indexOf(meal)));
+           }
+       }
+       return resultList;
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // TODO Implement by streams
         return null;
+    }
+
+    public static List<UserMealWithExcess> toUserMealWithExcess(List<UserMeal> meals, int caloriesPerDay) {
+        List<UserMealWithExcess> mealsWithExcess = new ArrayList<>();
+        Map<LocalDate, Boolean> excessMap = new HashMap<>();
+        int overallCalories = 0;
+        int elementIndex = 0;
+        int nextElementIndex = 0;
+        for (UserMeal meal : meals) {
+            if (elementIndex == meals.size() - 1) {
+                nextElementIndex = elementIndex;
+            } else {
+                nextElementIndex++;
+            }
+            LocalDate dateOfElement = meals.get(elementIndex).getDateTime().toLocalDate();
+            LocalDate dateOfNextElement = meals.get(nextElementIndex).getDateTime().toLocalDate();
+            boolean nextElementOfSameDate = dateOfElement.isEqual(dateOfNextElement);
+            overallCalories += meals.get(elementIndex).getCalories();
+            if (!nextElementOfSameDate || elementIndex == meals.size() - 1) {
+                excessMap.put(meals.get(elementIndex).getDateTime().toLocalDate(), overallCalories <= caloriesPerDay ? false : true);
+                overallCalories = 0;
+            }
+            elementIndex++;
+        }
+        for (UserMeal meal : meals) {
+            mealsWithExcess.add(new UserMealWithExcess(meal.getDateTime(), meal.getDescription(), meal.getCalories(), excessMap.get(meal.getDateTime().toLocalDate())));
+        }
+        return mealsWithExcess;
     }
 }
