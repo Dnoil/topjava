@@ -15,10 +15,10 @@ public class UserMealsUtil {
         List<UserMeal> meals = Arrays.asList(
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000),
+                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
         );
 
@@ -29,13 +29,7 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        Collections.sort(meals, new Comparator<UserMeal>() {
-            @Override
-            public int compare(UserMeal userMeal1, UserMeal userMeal2) {
-                return userMeal1.getDateTime().compareTo(userMeal2.getDateTime());
-            }
-        });
-       Map<LocalDate, Boolean> checkExcess = UserMealsUtil.toUserMealWithExcessByCycles(meals, caloriesPerDay);
+       Map<LocalDate, Boolean> checkExcess = UserMealsUtil.getExcessMap(meals, caloriesPerDay);
        List<UserMealWithExcess> resultList = new ArrayList<>();
        for (UserMeal meal : meals) {
            boolean inCorrectTimeRange = TimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime);
@@ -47,8 +41,7 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        Collections.sort(meals, Comparator.comparing(UserMeal::getDateTime));
-        Map<LocalDate, Boolean> checkExcess = UserMealsUtil.toUserMealWithExcessByCycles(meals, caloriesPerDay);
+        Map<LocalDate, Boolean> checkExcess = UserMealsUtil.getExcessMap(meals, caloriesPerDay);
         List<UserMealWithExcess> resultList = meals.stream()
                 .filter(e -> TimeUtil.isBetweenHalfOpen(e.getDateTime().toLocalTime(), startTime, endTime))
                 .map(e -> new UserMealWithExcess(
@@ -60,25 +53,12 @@ public class UserMealsUtil {
         return resultList;
     }
 
-    public static Map<LocalDate, Boolean> toUserMealWithExcessByCycles(List<UserMeal> meals, int caloriesPerDay) {
+    public static Map<LocalDate, Boolean> getExcessMap(List<UserMeal> meals, int caloriesPerDay) {
+        Map<LocalDate, Integer> caloriesMap = new HashMap<>();
+        meals.forEach(meal -> caloriesMap.merge(meal.getDateTime().toLocalDate(), meal.getCalories(), (newCalories, currentCalories) -> newCalories + currentCalories));
+        Set<LocalDate> dates = caloriesMap.keySet();
         Map<LocalDate, Boolean> excessMap = new HashMap<>();
-        int overallCalories = 0;
-        int nextElementIndex = 0;
-        for (int i = 0; i < meals.size(); i++) {
-            if (i == meals.size() - 1) {
-                nextElementIndex = i;
-            } else {
-                nextElementIndex++;
-            }
-            LocalDate dateOfElement = meals.get(i).getDateTime().toLocalDate();
-            LocalDate dateOfNextElement = meals.get(nextElementIndex).getDateTime().toLocalDate();
-            boolean nextElementOfSameDate = dateOfElement.isEqual(dateOfNextElement);
-            overallCalories += meals.get(i).getCalories();
-            if (!nextElementOfSameDate || i == meals.size() - 1) {
-                excessMap.put(meals.get(i).getDateTime().toLocalDate(), overallCalories > caloriesPerDay);
-                overallCalories = 0;
-            }
-        }
+        dates.forEach(date -> excessMap.put(date, caloriesMap.get(date) > caloriesPerDay));
         return excessMap;
     }
 }
