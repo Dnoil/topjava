@@ -6,8 +6,12 @@ import org.springframework.stereotype.Repository;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.DateTimeUtil;
+import ru.javawebinar.topjava.util.MealsUtil;
+import ru.javawebinar.topjava.util.ValidationUtil;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -21,24 +25,30 @@ public class InMemoryMealRepository implements MealRepository {
     private final Map<Integer, Meal> repository = new ConcurrentHashMap<>();
     private final AtomicInteger counter = new AtomicInteger(0);
 
+    {
+        MealsUtil.meals.forEach(meal -> save(meal,1));
+        repository.put(8, new Meal(LocalDateTime.of(2020, Month.JANUARY, 29, 10, 0), "Завddddтрак", 5000));
+    }
+
+
     @Override
     public Meal save(Meal meal, int userId) {
         log.info("save {} with user id={}", meal, userId);
-        if (userId == meal.getUserId()) {
-            if (meal.isNew()) {
-                meal.setId(counter.incrementAndGet());
-                repository.put(meal.getId(), meal);
-                return meal;
-            }
+        if (meal.isNew()) {
+            meal.setId(counter.incrementAndGet());
+            repository.put(meal.getId(), meal);
+            return meal;
+        } else if (userId == meal.getUserId()) {
             return repository.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
         }
-            return null;
-        }
+        return null;
+    }
 
     @Override
     public boolean delete(int id, int userId) {
         log.info("delete {} with user id={}", id, userId);
-        if (userId == repository.get(id).getUserId()) {
+        Meal meal = ValidationUtil.checkNotFoundWithId(repository.get(id), id);
+        if (userId == meal.getUserId()) {
             return repository.remove(id) != null;
         }
         return false;
@@ -47,8 +57,9 @@ public class InMemoryMealRepository implements MealRepository {
     @Override
     public Meal get(int id, int userId) {
         log.info("get {} with user id={}", id, userId);
-        if (userId == repository.get(id).getUserId()) {
-            return repository.get(id);
+        Meal meal = ValidationUtil.checkNotFoundWithId(repository.get(id), id);
+        if (userId == meal.getUserId()) {
+            return meal;
         }
         return null;
     }
@@ -68,6 +79,16 @@ public class InMemoryMealRepository implements MealRepository {
         return repository.values().stream()
                 .filter(meal -> meal.getUserId() == userId)
                 .filter(meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDateTime(), startDateTime, endDateTime))
+                .sorted(Comparator.comparing(Meal::getDateTime).reversed())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Meal> getBetweenInclusiveByDate(LocalDate startDate, LocalDate endDate, int userId) {
+        log.info("getBetweenInclusiveByDate of start date={} and end date={} with user id={}", startDate, endDate, userId);
+        return repository.values().stream()
+                .filter(meal -> meal.getUserId() == userId)
+                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDate(), startDate, endDate))
                 .sorted(Comparator.comparing(Meal::getDateTime).reversed())
                 .collect(Collectors.toList());
     }

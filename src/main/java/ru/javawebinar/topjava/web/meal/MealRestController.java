@@ -12,7 +12,6 @@ import ru.javawebinar.topjava.util.MealsUtil;
 import ru.javawebinar.topjava.web.SecurityUtil;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +21,7 @@ import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
 
 @Controller
 public class MealRestController {
-    protected final Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private MealService service;
@@ -34,13 +33,14 @@ public class MealRestController {
 
     public List<MealTo> getAllTos() {
         log.info("getAllTos");
-        return MealsUtil.getTos(service.getAll(SecurityUtil.authUserId()), MealsUtil.DEFAULT_CALORIES_PER_DAY);
+        return MealsUtil.getTos(service.getAll(SecurityUtil.authUserId()), SecurityUtil.authUserCaloriesPerDay());
     }
 
-    public List<Meal> getAllByDateAndTime (LocalDate startDate, LocalTime startTime, LocalDate endDate, LocalTime endTime) {
-        return service.getAll(SecurityUtil.authUserId()).stream()
-                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDateTime(), LocalDateTime.of(startDate, startTime),
-                        LocalDateTime.of(endDate, endTime)))
+    public List<MealTo> getAllByDateAndTime (LocalDate startDate, LocalTime startTime, LocalDate endDate, LocalTime endTime) {
+        log.info("getAllByDateAndTime of startDate={}, startTime={}, endDate={}, endTime={}", startDate, startTime, endDate, endTime);
+        return getAllTos().stream()
+                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDateTime().toLocalDate(), startDate, endDate))
+                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDateTime().toLocalTime(), startTime, endTime))
                 .collect(Collectors.toList());
     }
 

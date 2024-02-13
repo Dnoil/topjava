@@ -51,8 +51,4 @@ public class MealsUtil {
     private static MealTo createTo(Meal meal, boolean excess) {
         return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
     }
-
-    public static void main(String[] args) {
-        System.out.println(MealsUtil.getTos(meals, MealsUtil.DEFAULT_CALORIES_PER_DAY));
-    }
 }
