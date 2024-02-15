@@ -27,7 +27,6 @@ public class InMemoryMealRepository implements MealRepository {
 
     {
         MealsUtil.meals.forEach(meal -> save(meal,1));
-        repository.put(8, new Meal(LocalDateTime.of(2020, Month.JANUARY, 29, 10, 0), "Завddddтрак", 5000));
     }
 
 
@@ -79,16 +78,6 @@ public class InMemoryMealRepository implements MealRepository {
         return repository.values().stream()
                 .filter(meal -> meal.getUserId() == userId)
                 .filter(meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDateTime(), startDateTime, endDateTime))
-                .sorted(Comparator.comparing(Meal::getDateTime).reversed())
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Meal> getBetweenInclusiveByDate(LocalDate startDate, LocalDate endDate, int userId) {
-        log.info("getBetweenInclusiveByDate of start date={} and end date={} with user id={}", startDate, endDate, userId);
-        return repository.values().stream()
-                .filter(meal -> meal.getUserId() == userId)
-                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDate(), startDate, endDate))
                 .sorted(Comparator.comparing(Meal::getDateTime).reversed())
                 .collect(Collectors.toList());
     }

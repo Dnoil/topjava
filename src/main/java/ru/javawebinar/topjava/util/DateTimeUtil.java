@@ -10,10 +10,6 @@ public class DateTimeUtil {
         return targetTime.compareTo(startTime) >= 0 && targetTime.compareTo(endTime) < 0;
     }
 
-    public static <T extends Comparable<T>> boolean isBetweenInclusive(T targetTime, T startTime, T endTime) {
-        return targetTime.compareTo(startTime) >= 0 && targetTime.compareTo(endTime) <= 0;
-    }
-
     public static String toString(LocalDateTime ldt) {
         return ldt == null ? "" : ldt.format(DATE_TIME_FORMATTER);
     }

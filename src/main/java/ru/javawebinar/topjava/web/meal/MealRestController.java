@@ -26,21 +26,16 @@ public class MealRestController {
     @Autowired
     private MealService service;
 
-    public List<Meal> getAll() {
+    public List<MealTo> getAll() {
         log.info("getAll");
-        return service.getAll(SecurityUtil.authUserId());
-    }
-
-    public List<MealTo> getAllTos() {
-        log.info("getAllTos");
         return MealsUtil.getTos(service.getAll(SecurityUtil.authUserId()), SecurityUtil.authUserCaloriesPerDay());
     }
 
-    public List<MealTo> getAllByDateAndTime (LocalDate startDate, LocalTime startTime, LocalDate endDate, LocalTime endTime) {
+    public List<MealTo> getAllByDateAndTime(LocalDate startDate, LocalTime startTime, LocalDate endDate, LocalTime endTime) {
         log.info("getAllByDateAndTime of startDate={}, startTime={}, endDate={}, endTime={}", startDate, startTime, endDate, endTime);
-        return getAllTos().stream()
-                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDateTime().toLocalDate(), startDate, endDate))
-                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDateTime().toLocalTime(), startTime, endTime))
+        return getAll().stream()
+                .filter(meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalDate(), startDate, endDate))
+                .filter(meal -> DateTimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime))
                 .collect(Collectors.toList());
     }
 
