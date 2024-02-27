@@ -1,22 +1,52 @@
 package ru.javawebinar.topjava.model;
 
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+@NamedQueries({
+        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal meal WHERE meal.id=:id"),
+        @NamedQuery(name = Meal.BETWEEN_HALF_OPEN, query = "SELECT meal FROM Meal meal WHERE meal.dateTime >=?1 AND meal.dateTime <?2 ORDER BY meal.dateTime DESC"),
+        @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT meal FROM Meal meal ORDER BY meal.dateTime DESC"),
+})
+@Entity
+@Table(name = "meal", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date_time"})})
 public class Meal extends AbstractBaseEntity {
+
+    public static final String DELETE = "Meal.delete";
+    public static final String BETWEEN_HALF_OPEN = "Meal.getBetweenHalfOpen";
+    public static final String ALL_SORTED = "Meal.getAllSorted";
+
+    @Column(name = "user_id", nullable = false)
+    @NotBlank
+    private Integer userId;
+
+    @Column(name = "date_time", nullable = false)
+    @NotBlank
     private LocalDateTime dateTime;
 
+    @Column(name = "description", nullable = false)
+    @NotNull
+    @Size(max = 128)
     private String description;
 
+    @Column(name = "calories", nullable = false)
+    @NotNull
+    @Size(max = 4)
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
     public Meal() {
+    }
+
+    public Meal(Meal meal) {
+        this(meal.id, meal.dateTime, meal.description, meal.calories);
     }
 
     public Meal(LocalDateTime dateTime, String description, int calories) {
