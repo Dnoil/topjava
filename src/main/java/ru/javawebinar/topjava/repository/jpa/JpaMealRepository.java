@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-@Transactional(readOnly = true)
+@Transactional
 public class JpaMealRepository implements MealRepository {
 
     @PersistenceContext
@@ -26,13 +26,16 @@ public class JpaMealRepository implements MealRepository {
             em.persist(meal);
             return meal;
         } else {
+            meal.setUser(ref);
             return em.merge(meal);
         }
     }
 
     @Override
     public boolean delete(int id, int userId) {
+        User ref = em.getReference(User.class, userId);
         return em.createNamedQuery(Meal.DELETE)
+                .setParameter(1, ref.id())
                 .setParameter("id", id)
                 .executeUpdate() != 0;
     }
@@ -44,15 +47,19 @@ public class JpaMealRepository implements MealRepository {
 
     @Override
     public List<Meal> getAll(int userId) {
+        User ref = em.getReference(User.class, userId);
         return em.createNamedQuery(Meal.ALL_SORTED, Meal.class)
+                .setParameter(1, ref.id())
                 .getResultList();
     }
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
+        User ref = em.getReference(User.class, userId);
         return em.createNamedQuery(Meal.BETWEEN_HALF_OPEN, Meal.class)
-                .setParameter(1, startDateTime)
-                .setParameter(2, endDateTime)
+                .setParameter(1, ref.id())
+                .setParameter(2, startDateTime)
+                .setParameter(3, endDateTime)
                 .getResultList();
     }
 }
