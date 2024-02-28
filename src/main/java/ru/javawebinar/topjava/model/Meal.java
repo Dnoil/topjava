@@ -1,17 +1,15 @@
 package ru.javawebinar.topjava.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @NamedQueries({
-        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal meal WHERE meal.user.id=?1 AND meal.id=:id"),
-        @NamedQuery(name = Meal.BETWEEN_HALF_OPEN, query = "SELECT meal FROM Meal meal WHERE meal.user.id =?1 AND meal.dateTime >=?2 AND meal.dateTime <?3 ORDER BY meal.dateTime DESC"),
+        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal meal WHERE meal.user.id=?1 AND meal.id=?2"),
+        @NamedQuery(name = Meal.BETWEEN_HALF_OPEN, query = "SELECT meal FROM Meal meal WHERE meal.user.id =?1 " +
+                "AND meal.dateTime >=?2 AND meal.dateTime <?3 ORDER BY meal.dateTime DESC"),
         @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT meal FROM Meal meal WHERE meal.user.id=?1 ORDER BY meal.dateTime DESC"),
 })
 @Entity
@@ -32,11 +30,12 @@ public class Meal extends AbstractBaseEntity {
     private String description;
 
     @Column(name = "calories", nullable = false)
+    @Min(value = 0)
     @Max(value = 9999)
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id")
+    @JoinColumn(name="user_id", nullable = false)
     @NotNull
     private User user;
 
