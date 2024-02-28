@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.MealRepository;
+import ru.javawebinar.topjava.util.ValidationUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -21,15 +22,15 @@ public class JpaMealRepository implements MealRepository {
     @Override
     @Transactional
     public Meal save(Meal meal, int userId) {
-            User ref = em.getReference(User.class, userId);
-            if (meal.isNew()) {
-                meal.setUser(ref);
-                em.persist(meal);
-                return meal;
-            } else if (ref.getId() == userId) {
-                meal.setUser(ref);
-                return em.merge(meal);
-            }
+        User ref = em.getReference(User.class, userId);
+        if (meal.isNew()) {
+            meal.setUser(ref);
+            em.persist(meal);
+            return meal;
+        } else if (ref.getId() == userId) {
+            meal.setUser(ref);
+            return em.merge(meal);
+        }
         return null;
     }
 
@@ -45,6 +46,7 @@ public class JpaMealRepository implements MealRepository {
     @Override
     public Meal get(int id, int userId) {
         Meal meal = em.find(Meal.class, id);
+        ValidationUtil.checkNotFoundWithId(meal, id);
         return meal.getUser().getId() == userId ? meal : null;
     }
 
