@@ -4,10 +4,6 @@
 
 <html>
 <jsp:include page="fragments/headTag.jsp"/>
-<head>
-    <title>Meal</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
 <body>
 <jsp:include page="fragments/bodyHeader.jsp"/>
 <section>

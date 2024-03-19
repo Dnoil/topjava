@@ -5,33 +5,29 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <html>
 <jsp:include page="fragments/headTag.jsp"/>
-<head>
-    <title>Meals</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
 <body>
 <jsp:include page="fragments/bodyHeader.jsp"/>
 <section>
     <h3><a href="/topjava"><spring:message code="app.home"/></a></h3>
     <hr/>
     <h2><spring:message code="meal.title"/></h2>
-    <form method="get" action="meals">
-        <input type="hidden" name="action" value="filter">
+    <form method="get" action="meals/filter">
+        <input type="hidden" name="action" value="meals/filter">
         <dl>
             <dt><spring:message code="app.from_date_incl"/>:</dt>
-            <dd><input type="date" name="startDate" value="${param.startDate}"></dd>
+            <dd><input type="date" name="startDate"></dd>
         </dl>
         <dl>
             <dt><spring:message code="app.to_date_incl"/>:</dt>
-            <dd><input type="date" name="endDate" value="${param.endDate}"></dd>
+            <dd><input type="date" name="endDate"></dd>
         </dl>
         <dl>
             <dt><spring:message code="app.from_time_incl"/>:</dt>
-            <dd><input type="time" name="startTime" value="${param.startTime}"></dd>
+            <dd><input type="time" name="startTime"></dd>
         </dl>
         <dl>
             <dt><spring:message code="app.to_time_excl"/>:</dt>
-            <dd><input type="time" name="endTime" value="${param.endTime}"></dd>
+            <dd><input type="time" name="endTime"></dd>
         </dl>
         <button type="submit"><spring:message code="common.filter"/></button>
     </form>

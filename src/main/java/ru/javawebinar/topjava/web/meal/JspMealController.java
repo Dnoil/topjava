@@ -19,66 +19,49 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/meals")
-public class JspMealController {
-
-    private static final Logger log = LoggerFactory.getLogger(JspMealController.class);
-
-    @Autowired
-    private MealService mealService;
+public class JspMealController extends AbstractMealController {
 
     @GetMapping
     public String getMeals(Model model) {
-        log.info("meals");
-        int userId = SecurityUtil.authUserId();
-        int userCaloriesPerDay = SecurityUtil.authUserCaloriesPerDay();
-        model.addAttribute("meals", MealsUtil.getTos(mealService.getAll(userId), userCaloriesPerDay));
+        model.addAttribute("meals", getAll());
         return "meals";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteMeal(@PathVariable("id") int id) {
-        mealService.delete(id, SecurityUtil.authUserId());
+        super.delete(id);
         return "redirect:/meals";
     }
 
     @GetMapping("/create")
     public String createMealForm(Model model) {
-        log.info("createMealForm");
         model.addAttribute("meal", new Meal());
         return "mealForm";
     }
 
     @PostMapping("/create")
     public String createMeal(@ModelAttribute Meal meal) {
-        if (meal.isNew()) {
-            mealService.create(meal, SecurityUtil.authUserId());
-        }
+        super.create(meal);
         return "redirect:/meals";
     }
 
     @GetMapping("/update/{id}")
     public String updateMealForm(Model model, @PathVariable("id") int id) {
-        log.info("updateMealForm");
-        int userId = SecurityUtil.authUserId();
-        model.addAttribute("meal", mealService.get(id, userId));
+        model.addAttribute("meal", super.get(id));
         return "mealForm";
     }
 
     @PostMapping("/update/{id}")
-    public String updateMeal(@ModelAttribute Meal meal) {
-            mealService.update(meal, SecurityUtil.authUserId());
+    public String updateMeal(@PathVariable("id") int id, @ModelAttribute Meal meal) {
+        super.update(meal, id);
         return "redirect:/meals";
     }
 
     @GetMapping("/filter")
     public String getBetweenDateTime(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,
-            @Param("startTime") LocalTime startTime, @Param("endTime") LocalTime endTime, Model model) {
-        log.info("getBetweenDateTime from {} to {} from {} to {}", startDate, endDate, startTime, endTime);
-        int userId = SecurityUtil.authUserId();
-        int userCaloriesPerDay = SecurityUtil.authUserCaloriesPerDay();
-        List<Meal> mealsByDate = mealService.getBetweenInclusive(startDate, endDate, userId);
-        List<MealTo> mealsByDateTime = MealsUtil.getFilteredTos(mealsByDate, userCaloriesPerDay, startTime, endTime);
-        model.addAttribute("meals", mealsByDateTime);
+                                     @Param("startTime") LocalTime startTime, @Param("endTime") LocalTime endTime,
+                                     Model model) {
+        model.addAttribute("meals", super.getBetween(startDate, startTime, endDate, endTime));
         return "redirect:/meals";
     }
 }
