@@ -1,11 +1,16 @@
 package ru.javawebinar.topjava.web.meal;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
 
+import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -26,10 +31,13 @@ public class MealRestController extends AbstractMealController {
         return super.get(id);
     }
 
-    @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Meal create(@RequestBody Meal meal) {
-        return super.create(meal);
+    public ResponseEntity<Meal> createWithLocation(@RequestBody Meal meal) {
+        Meal createdMeal = super.create(meal);
+        URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path(REST_URL + "/{id}")
+                .buildAndExpand(createdMeal.getId()).toUri();
+        return ResponseEntity.created(uriOfNewResource).body(createdMeal);
     }
 
     @Override
@@ -44,5 +52,11 @@ public class MealRestController extends AbstractMealController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@RequestBody Meal meal, @PathVariable int id) {
         super.update(meal, id);
+    }
+
+    @GetMapping(value = "/filter", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    public List<MealTo> getBetween(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
+        return super.getBetween(start.toLocalDate(), start.toLocalTime(), end.toLocalDate(), end.toLocalTime());
     }
 }
